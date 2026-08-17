@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/compressImage";
 
 const RELATIONSHIPS = ["Spouse", "Father", "Mother", "Son", "Daughter", "Brother", "Sister", "Other"];
 const STEPS = ["Personal Details", "Photo", "Aadhaar", "Nominee", "Terms & Privacy", "Review"];
@@ -23,6 +24,7 @@ export default function OnboardingPage() {
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [aadhaarFront, setAadhaarFront] = useState<File | null>(null);
   const [aadhaarBack, setAadhaarBack] = useState<File | null>(null);
+  const [compressingField, setCompressingField] = useState<string | null>(null);
 
   const [nomineeName, setNomineeName] = useState("");
   const [relationship, setRelationship] = useState(RELATIONSHIPS[0]);
@@ -73,6 +75,30 @@ export default function OnboardingPage() {
     if (!allowed.includes(file.type)) return "Only JPG, PNG, or WEBP files are allowed.";
     if (file.size > 8 * 1024 * 1024) return "File must be under 8MB.";
     return null;
+  }
+
+  // Validates the picked file, compresses it to ~300KB in the browser, then
+  // hands the final File to the caller's setter. `field` is only used to
+  // show a per-field "Compressing…" indicator.
+  async function handlePickFile(
+    file: File,
+    field: string,
+    setter: (f: File) => void
+  ) {
+    const err = validateFile(file);
+    if (err) return setError(err);
+    setError(null);
+    setCompressingField(field);
+    try {
+      const compressed = await compressImage(file, 300);
+      setter(compressed);
+    } catch {
+      // If compression fails for any reason, fall back to the original file
+      // rather than blocking the user.
+      setter(file);
+    } finally {
+      setCompressingField(null);
+    }
   }
 
   async function uploadDoc(file: File, kind: "selfie" | "aadhaar/front" | "aadhaar/back", label: string) {
@@ -214,12 +240,8 @@ export default function OnboardingPage() {
           <FileField
             label="Selfie / Profile Photo"
             file={selfieFile}
-            onChange={(f) => {
-              const err = validateFile(f);
-              if (err) return setError(err);
-              setError(null);
-              setSelfieFile(f);
-            }}
+            compressing={compressingField === "selfie"}
+            onChange={(f) => handlePickFile(f, "selfie", setSelfieFile)}
             capture
           />
         )}
@@ -229,22 +251,14 @@ export default function OnboardingPage() {
             <FileField
               label="Aadhaar Front"
               file={aadhaarFront}
-              onChange={(f) => {
-                const err = validateFile(f);
-                if (err) return setError(err);
-                setError(null);
-                setAadhaarFront(f);
-              }}
+              compressing={compressingField === "aadhaarFront"}
+              onChange={(f) => handlePickFile(f, "aadhaarFront", setAadhaarFront)}
             />
             <FileField
               label="Aadhaar Back"
               file={aadhaarBack}
-              onChange={(f) => {
-                const err = validateFile(f);
-                if (err) return setError(err);
-                setError(null);
-                setAadhaarBack(f);
-              }}
+              compressing={compressingField === "aadhaarBack"}
+              onChange={(f) => handlePickFile(f, "aadhaarBack", setAadhaarBack)}
             />
             <p className="text-xs text-slate-400">
               Your Aadhaar images are stored in a private, access-controlled
@@ -316,11 +330,11 @@ export default function OnboardingPage() {
             Back
           </button>
           <button
-            disabled={saving}
+            disabled={saving || !!compressingField}
             onClick={handleNext}
             className="px-6 py-2 rounded-lg bg-brand-blue text-white font-medium disabled:opacity-60"
           >
-            {saving ? "Saving…" : step === STEPS.length - 1 ? "Complete Account" : "Next"}
+            {saving ? "Saving…" : compressingField ? "Compressing…" : step === STEPS.length - 1 ? "Complete Account" : "Next"}
           </button>
         </div>
       </div>
@@ -351,9 +365,21 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function formatSize(bytes: number): string {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(2)}MB`
+    : `${Math.round(bytes / 1024)}KB`;
+}
+
 function FileField({
-  label, file, onChange, capture,
-}: { label: string; file: File | null; onChange: (f: File) => void; capture?: boolean }) {
+  label, file, onChange, capture, compressing,
+}: {
+  label: string;
+  file: File | null;
+  onChange: (f: File) => void;
+  capture?: boolean;
+  compressing?: boolean;
+}) {
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
@@ -361,13 +387,23 @@ function FileField({
         type="file"
         accept="image/jpeg,image/jpg,image/png,image/webp"
         capture={capture ? "user" : undefined}
+        disabled={compressing}
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) onChange(f);
+          // allow re-selecting the same file name after compression
+          e.target.value = "";
         }}
         className="block w-full text-sm"
       />
-      {file && <p className="text-xs text-green-700 mt-1">Selected: {file.name}</p>}
+      {compressing && (
+        <p className="text-xs text-slate-500 mt-1">Compressing image…</p>
+      )}
+      {!compressing && file && (
+        <p className="text-xs text-green-700 mt-1">
+          Selected: {file.name} ({formatSize(file.size)})
+        </p>
+      )}
     </div>
   );
 }
