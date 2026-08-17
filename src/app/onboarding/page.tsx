@@ -203,7 +203,13 @@ export default function OnboardingPage() {
         });
       }
 
-      router.replace("/dashboard");
+      // Use a hard navigation instead of router.replace(). The App Router's
+      // client-side cache can otherwise serve a stale RSC payload for
+      // /dashboard (captured while onboarding was still incomplete), which
+      // immediately redirects back to /onboarding even though the DB row
+      // is now COMPLETE. A full page load guarantees a fresh server fetch.
+      window.location.assign("/dashboard");
+      return;
     } catch (e: any) {
       setError(e.message ?? "Something went wrong. Please try again.");
     } finally {
