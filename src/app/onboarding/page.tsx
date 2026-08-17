@@ -294,7 +294,7 @@ export default function OnboardingPage() {
               {privacyDoc ? (
                 <div dangerouslySetInnerHTML={{ __html: privacyDoc.content }} />
               ) : (
-                <p className="italic">Privacy Policy has not been published by admin yet.</p>
+                <p className="italic">Privacy Policy have not been published by admin yet.</p>
               )}
             </div>
             <label className="flex items-start gap-2 text-sm">
