@@ -75,15 +75,23 @@ export default function OnboardingPage() {
     return null;
   }
 
-  async function uploadDoc(file: File, kind: "selfie" | "aadhaar/front" | "aadhaar/back") {
+  async function uploadDoc(file: File, kind: "selfie" | "aadhaar/front" | "aadhaar/back", label: string) {
     if (!customerId) throw new Error("Missing customer profile");
     const ext = file.name.split(".").pop();
     const path = `customers/${customerId}/${kind}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("customer-documents-private")
-      .upload(path, file, { upsert: true, contentType: file.type });
-    if (upErr) throw upErr;
-    return path;
+    let lastError: any = null;
+    // A weak mobile connection can drop one upload in a sequence of several;
+    // retry once before surfacing an error, and say which document failed.
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const { error: upErr } = await supabase.storage
+        .from("customer-documents-private")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (!upErr) return path;
+      lastError = upErr;
+    }
+    throw new Error(
+      `Failed to upload ${label}. Please check your internet connection and try again. (${lastError?.message ?? "network error"})`
+    );
   }
 
   async function handleNext() {
@@ -124,9 +132,9 @@ export default function OnboardingPage() {
     setSaving(true);
     setError(null);
     try {
-      const selfiePath = selfieFile ? await uploadDoc(selfieFile, "selfie") : null;
-      const frontPath = aadhaarFront ? await uploadDoc(aadhaarFront, "aadhaar/front") : null;
-      const backPath = aadhaarBack ? await uploadDoc(aadhaarBack, "aadhaar/back") : null;
+      const selfiePath = selfieFile ? await uploadDoc(selfieFile, "selfie", "your selfie") : null;
+      const frontPath = aadhaarFront ? await uploadDoc(aadhaarFront, "aadhaar/front", "Aadhaar front") : null;
+      const backPath = aadhaarBack ? await uploadDoc(aadhaarBack, "aadhaar/back", "Aadhaar back") : null;
 
       const { error: updateErr } = await supabase
         .from("customers")
