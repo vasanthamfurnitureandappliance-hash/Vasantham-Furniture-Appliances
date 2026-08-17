@@ -43,10 +43,17 @@ export default function OnboardingPage() {
       }
       const { data: customer } = await supabase
         .from("customers")
-        .select("id, full_name, mobile_number, address")
+        .select("id, full_name, mobile_number, address, onboarding_status")
         .eq("auth_user_id", userData.user.id)
         .maybeSingle();
       if (customer) {
+        // Already completed onboarding earlier — this page shouldn't be
+        // shown again (e.g. reopening the app on a stale /onboarding tab).
+        // Send them straight to the dashboard instead.
+        if (customer.onboarding_status === "COMPLETE") {
+          router.replace("/dashboard");
+          return;
+        }
         setCustomerId(customer.id);
         setFullName(customer.full_name ?? "");
         setMobile(customer.mobile_number ?? "");
@@ -294,7 +301,7 @@ export default function OnboardingPage() {
               {privacyDoc ? (
                 <div dangerouslySetInnerHTML={{ __html: privacyDoc.content }} />
               ) : (
-                <p className="italic">Privacy Policy have not been published by admin yet.</p>
+                <p className="italic">Privacy Policy has not been published by admin yet.</p>
               )}
             </div>
             <label className="flex items-start gap-2 text-sm">
