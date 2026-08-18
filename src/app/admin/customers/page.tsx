@@ -133,8 +133,8 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
   ];
 
   return (
-    <div className="p-8 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-8 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-bold text-brand-blue">Customers</h1>
         <p className="text-sm text-slate-500">
           {totalCount} customer{totalCount === 1 ? "" : "s"}
@@ -149,7 +149,7 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
           name="q"
           defaultValue={q}
           placeholder="Search by Customer ID, name or mobile"
-          className="border rounded-lg px-3 py-2 text-sm w-72"
+          className="border rounded-lg px-3 py-2 text-sm w-full sm:w-72"
         />
         <button type="submit" className="text-sm bg-brand-blue text-white px-4 py-2 rounded-lg font-medium">
           Search
@@ -187,8 +187,8 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
         ))}
       </div>
 
-      <div className="bg-white border rounded-xl overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="bg-white sm:border sm:rounded-xl overflow-x-auto -mx-4 sm:mx-0">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-slate-100 text-left text-slate-600">
             <tr>
               <th className="px-4 py-3">Customer ID</th>
