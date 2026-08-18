@@ -55,7 +55,7 @@ export default async function AdminCustomerDetail({ params }: { params: { id: st
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export default async function AdminCustomerDetail({ params }: { params: { id: st
         <CustomerStatusActions customerId={customer.id} accountStatus={customer.account_status} />
       </div>
 
-      <section className="bg-white border rounded-xl p-6">
+      <section className="bg-white border rounded-xl p-4 sm:p-6">
         <h2 className="font-semibold text-slate-700 mb-4">Purchase Summary</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <SummaryStat label="Total Purchases" value={String(purchaseList.length)} />
@@ -96,7 +96,7 @@ export default async function AdminCustomerDetail({ params }: { params: { id: st
         </div>
       </section>
 
-      <section className="bg-white border rounded-xl p-6">
+      <section className="bg-white border rounded-xl p-4 sm:p-6">
         <h2 className="font-semibold text-slate-700 mb-4">KYC Documents</h2>
         <div className="grid sm:grid-cols-3 gap-4">
           <DocPreview label="Selfie" url={selfieUrl} />
@@ -109,7 +109,7 @@ export default async function AdminCustomerDetail({ params }: { params: { id: st
         </div>
       </section>
 
-      <section className="bg-white border rounded-xl p-6">
+      <section className="bg-white border rounded-xl p-4 sm:p-6">
         <h2 className="font-semibold text-slate-700 mb-4">Purchases & Installments</h2>
         {purchaseList.length === 0 && <p className="text-slate-400 text-sm">No purchases yet.</p>}
         <div className="space-y-6">
@@ -134,75 +134,79 @@ export default async function AdminCustomerDetail({ params }: { params: { id: st
                   </div>
                   {p.status === "ACTIVE" && <RecordPaymentForm purchaseId={p.id} />}
                 </div>
-                <table className="w-full text-xs">
-                  <thead className="text-slate-500">
-                    <tr>
-                      <th className="text-left py-1">#</th>
-                      <th className="text-left">Due Date</th>
-                      <th className="text-left">Due</th>
-                      <th className="text-left">Paid</th>
-                      <th className="text-left">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {installments.map((i: any) => (
-                      <tr key={i.id} className="border-t">
-                        <td className="py-1">{i.installment_no}</td>
-                        <td>{new Date(i.due_date).toLocaleDateString("en-IN")}</td>
-                        <td>{inr(i.amount_due)}</td>
-                        <td>{inr(i.amount_paid)}</td>
-                        <td>
-                          <span
-                            className={`px-2 py-0.5 rounded-full ${
-                              i.status === "PAID"
-                                ? "bg-green-100 text-green-700"
-                                : i.status === "OVERDUE"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-slate-100 text-slate-600"
-                            }`}
-                          >
-                            {i.status}
-                          </span>
-                        </td>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <table className="w-full min-w-[480px] text-xs">
+                    <thead className="text-slate-500">
+                      <tr>
+                        <th className="text-left py-1 pl-4 sm:pl-0">#</th>
+                        <th className="text-left">Due Date</th>
+                        <th className="text-left">Due</th>
+                        <th className="text-left">Paid</th>
+                        <th className="text-left pr-4 sm:pr-0">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {installments.map((i: any) => (
+                        <tr key={i.id} className="border-t">
+                          <td className="py-1 pl-4 sm:pl-0">{i.installment_no}</td>
+                          <td>{new Date(i.due_date).toLocaleDateString("en-IN")}</td>
+                          <td>{inr(i.amount_due)}</td>
+                          <td>{inr(i.amount_paid)}</td>
+                          <td className="pr-4 sm:pr-0">
+                            <span
+                              className={`px-2 py-0.5 rounded-full ${
+                                i.status === "PAID"
+                                  ? "bg-green-100 text-green-700"
+                                  : i.status === "OVERDUE"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {i.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           })}
         </div>
       </section>
 
-      <section className="bg-white border rounded-xl p-6">
+      <section className="bg-white border rounded-xl p-4 sm:p-6">
         <h2 className="font-semibold text-slate-700 mb-4">Payment History</h2>
         {(payments ?? []).length === 0 ? (
           <p className="text-slate-400 text-sm">No payments recorded yet.</p>
         ) : (
-          <table className="w-full text-xs">
-            <thead className="text-slate-500 text-left">
-              <tr>
-                <th className="py-1">Receipt</th>
-                <th>Product</th>
-                <th>Amount</th>
-                <th>Method</th>
-                <th>Date</th>
-                <th>Recorded By</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(payments ?? []).map((pay: any) => (
-                <tr key={pay.id} className="border-t">
-                  <td className="py-1">{pay.receipt_code}</td>
-                  <td>{pay.purchases?.product_name ?? "—"} <span className="text-slate-400">({pay.purchases?.purchase_code})</span></td>
-                  <td>{inr(pay.amount)}</td>
-                  <td>{pay.method}</td>
-                  <td>{new Date(pay.paid_at).toLocaleDateString("en-IN")}</td>
-                  <td>{pay.recorder?.full_name ?? "—"}</td>
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full min-w-[600px] text-xs">
+              <thead className="text-slate-500 text-left">
+                <tr>
+                  <th className="py-1 pl-4 sm:pl-0">Receipt</th>
+                  <th>Product</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Date</th>
+                  <th className="pr-4 sm:pr-0">Recorded By</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(payments ?? []).map((pay: any) => (
+                  <tr key={pay.id} className="border-t">
+                    <td className="py-1 pl-4 sm:pl-0">{pay.receipt_code}</td>
+                    <td>{pay.purchases?.product_name ?? "—"} <span className="text-slate-400">({pay.purchases?.purchase_code})</span></td>
+                    <td>{inr(pay.amount)}</td>
+                    <td>{pay.method}</td>
+                    <td>{new Date(pay.paid_at).toLocaleDateString("en-IN")}</td>
+                    <td className="pr-4 sm:pr-0">{pay.recorder?.full_name ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
