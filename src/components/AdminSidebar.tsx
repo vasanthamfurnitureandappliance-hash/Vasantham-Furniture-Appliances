@@ -59,7 +59,7 @@ export default function AdminSidebar({ adminName }: { adminName: string | null }
   return (
     <>
       {/* Mobile top bar */}
-      <div className="md:hidden sticky top-0 z-30 bg-brand-blue text-white flex items-center justify-between px-4 py-3">
+      <div className="md:hidden sticky top-0 z-30 h-14 bg-brand-blue text-white flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Logo size={32} withLink={false} />
           <span className="font-semibold text-sm">Vasantham Admin</span>
@@ -75,9 +75,10 @@ export default function AdminSidebar({ adminName }: { adminName: string | null }
         </button>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile dropdown menu — starts below the sticky top bar so the
+          first nav item (Dashboard) isn't hidden underneath it */}
       {open && (
-        <div className="md:hidden fixed inset-0 z-20 flex">
+        <div className="md:hidden fixed inset-x-0 top-14 bottom-0 z-20 flex">
           <div className="bg-brand-blue text-white w-64 max-w-[80vw] flex flex-col h-full overflow-y-auto">
             {navContent}
           </div>
