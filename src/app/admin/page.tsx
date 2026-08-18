@@ -21,9 +21,9 @@ export default async function AdminDashboard() {
   const activePurchases = (purchases ?? []).filter((p) => p.status === "ACTIVE").length;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <h1 className="text-xl font-bold text-brand-blue mb-6">Admin Dashboard</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <Stat label="Active Customers" value={String(customerCount ?? 0)} />
         <Stat label="Active Purchases" value={String(activePurchases)} />
         <Stat label="Total Payable" value={inr(totalPayable)} />
