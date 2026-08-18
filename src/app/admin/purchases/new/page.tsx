@@ -12,7 +12,7 @@ export default async function NewPurchasePage() {
     .order("full_name");
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <h1 className="text-xl font-bold text-brand-blue mb-6">New Purchase</h1>
       <NewPurchaseForm customers={customers ?? []} />
     </div>
