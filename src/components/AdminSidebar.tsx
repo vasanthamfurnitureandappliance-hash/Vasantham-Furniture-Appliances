@@ -19,19 +19,30 @@ const SETTINGS_LINKS = [
 
 export default function AdminSidebar({ adminName }: { adminName: string | null }) {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  // Normalize away any trailing slash so "/admin/" and "/admin" match the same way.
+  const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/$/, "") : rawPathname;
+
+  // "/admin" (Dashboard) should only be active on the exact dashboard page,
+  // not on every nested /admin/* route. Every other link is active on its
+  // own page and any of its sub-routes (e.g. /admin/customers/xyz keeps
+  // "Customers" highlighted).
+  function isActive(href: string) {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname === href || pathname.startsWith(href + "/");
+  }
 
   const navContent = (
     <>
       <nav className="flex-1 p-3 space-y-1 text-sm">
         {LINKS.map((l) => (
-          <NavLink key={l.href} href={l.href} active={pathname === l.href} onClick={() => setOpen(false)}>
+          <NavLink key={l.href} href={l.href} active={isActive(l.href)} onClick={() => setOpen(false)}>
             {l.label}
           </NavLink>
         ))}
         <p className="uppercase text-[10px] tracking-wide text-blue-200 mt-4 mb-1 px-3">Settings</p>
         {SETTINGS_LINKS.map((l) => (
-          <NavLink key={l.href} href={l.href} active={pathname === l.href} onClick={() => setOpen(false)}>
+          <NavLink key={l.href} href={l.href} active={isActive(l.href)} onClick={() => setOpen(false)}>
             {l.label}
           </NavLink>
         ))}
